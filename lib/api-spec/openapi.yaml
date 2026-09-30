@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: JanConnect AI civic request and infrastructure intelligence API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: complaints
+    description: Citizen development requests
+  - name: intelligence
+    description: Aggregate analytics, hotspots, and prototype insights
 paths:
   /healthz:
     get:
@@ -24,6 +28,211 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /complaints:
+    get:
+      operationId: listComplaints
+      tags: [complaints]
+      summary: List and filter citizen requests
+      parameters:
+        - name: category
+          in: query
+          schema:
+            $ref: "#/components/schemas/CivicCategory"
+        - name: priority
+          in: query
+          schema:
+            $ref: "#/components/schemas/Priority"
+        - name: city
+          in: query
+          schema:
+            $ref: "#/components/schemas/City"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ComplaintStatus"
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+      responses:
+        "200":
+          description: Matching requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Complaint"
+    post:
+      operationId: createComplaint
+      tags: [complaints]
+      summary: Analyze and save a citizen request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintInput"
+      responses:
+        "201":
+          description: Saved request with AI analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+        "400":
+          description: Invalid request
+  /complaints/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+    get:
+      operationId: getComplaint
+      tags: [complaints]
+      summary: Get a request and its analysis
+      responses:
+        "200":
+          description: Request details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+        "404":
+          description: Request not found
+    put:
+      operationId: updateComplaint
+      tags: [complaints]
+      summary: Update a request status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintUpdate"
+      responses:
+        "200":
+          description: Updated request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+        "404":
+          description: Request not found
+  /analyze-complaint:
+    post:
+      operationId: analyzeComplaint
+      tags: [complaints]
+      summary: Analyze a multilingual request without saving it
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintAnalysisInput"
+      responses:
+        "200":
+          description: Normalized request analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplaintAnalysis"
+        "400":
+          description: Invalid request
+  /analytics:
+    get:
+      operationId: getAnalytics
+      tags: [intelligence]
+      summary: Get filtered dashboard metrics and chart data
+      parameters:
+        - name: category
+          in: query
+          schema:
+            $ref: "#/components/schemas/CivicCategory"
+        - name: priority
+          in: query
+          schema:
+            $ref: "#/components/schemas/Priority"
+        - name: city
+          in: query
+          schema:
+            $ref: "#/components/schemas/City"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ComplaintStatus"
+      responses:
+        "200":
+          description: Aggregated metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+  /hotspots:
+    get:
+      operationId: getHotspots
+      tags: [intelligence]
+      summary: Calculate geographically concentrated request hotspots
+      parameters:
+        - name: category
+          in: query
+          schema:
+            $ref: "#/components/schemas/CivicCategory"
+        - name: priority
+          in: query
+          schema:
+            $ref: "#/components/schemas/Priority"
+        - name: city
+          in: query
+          schema:
+            $ref: "#/components/schemas/City"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ComplaintStatus"
+      responses:
+        "200":
+          description: Hotspots derived from matching requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hotspot"
+  /generate-demo-data:
+    post:
+      operationId: generateDemoData
+      tags: [intelligence]
+      summary: Add clearly labeled synthetic citizen requests
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemoDataInput"
+      responses:
+        "201":
+          description: Synthetic records created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoDataResult"
+  /generate-insights:
+    post:
+      operationId: generateInsights
+      tags: [intelligence]
+      summary: Generate prototype development recommendations from aggregate data
+      responses:
+        "200":
+          description: Generated insights, with a rule-based fallback if AI is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DevelopmentInsights"
 components:
   schemas:
     HealthStatus:
@@ -31,6 +240,328 @@ components:
       properties:
         status:
           type: string
+      required: [status]
+    CivicCategory:
+      type: string
+      enum: [Water, Road, Transport, Healthcare, Internet]
+    Priority:
+      type: string
+      enum: [High, Medium, Low]
+    Language:
+      type: string
+      enum: [English, Hindi, Marathi]
+    City:
+      type: string
+      enum: [Pune, Nashik, Nagpur, Mumbai, Thane]
+    ComplaintStatus:
+      type: string
+      enum: [New, Under Review, Action Suggested, Resolved]
+    Complaint:
+      type: object
+      properties:
+        id:
+          type: integer
+        complaintText:
+          type: string
+        language:
+          $ref: "#/components/schemas/Language"
+        category:
+          $ref: "#/components/schemas/CivicCategory"
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        priority:
+          $ref: "#/components/schemas/Priority"
+        priorityReason:
+          type: string
+        summary:
+          type: string
+        affectedGroup:
+          type: string
+        recommendedDepartment:
+          type: string
+        recommendedAction:
+          type: string
+        locationName:
+          type: string
+        city:
+          $ref: "#/components/schemas/City"
+        latitude:
+          type: number
+        longitude:
+          type: number
+        status:
+          $ref: "#/components/schemas/ComplaintStatus"
+        createdAt:
+          type: string
+          format: date-time
+        isDemo:
+          type: boolean
+        usedFallback:
+          type: boolean
+        contactName:
+          type: ["string", "null"]
+        contactPhone:
+          type: ["string", "null"]
       required:
+        - id
+        - complaintText
+        - language
+        - category
+        - confidence
+        - priority
+        - priorityReason
+        - summary
+        - affectedGroup
+        - recommendedDepartment
+        - recommendedAction
+        - locationName
+        - city
+        - latitude
+        - longitude
         - status
-
+        - createdAt
+        - isDemo
+        - contactName
+        - contactPhone
+    ComplaintInput:
+      type: object
+      properties:
+        complaintText:
+          type: string
+          minLength: 6
+          maxLength: 2000
+        language:
+          $ref: "#/components/schemas/Language"
+        locationName:
+          type: string
+          enum:
+            - Hadapsar, Pune
+            - Kothrud, Pune
+            - Pimpri, Pune
+            - Nashik Road, Nashik
+            - Central Nashik
+            - Nagpur Central
+            - Mumbai Suburbs
+            - Thane
+        contactName:
+          type: string
+          maxLength: 100
+        contactPhone:
+          type: string
+          maxLength: 40
+      required: [complaintText, language, locationName]
+    ComplaintAnalysisInput:
+      type: object
+      properties:
+        complaintText:
+          type: string
+          minLength: 6
+          maxLength: 2000
+        language:
+          $ref: "#/components/schemas/Language"
+        locationName:
+          type: string
+          enum:
+            - Hadapsar, Pune
+            - Kothrud, Pune
+            - Pimpri, Pune
+            - Nashik Road, Nashik
+            - Central Nashik
+            - Nagpur Central
+            - Mumbai Suburbs
+            - Thane
+      required: [complaintText, language, locationName]
+    ComplaintAnalysis:
+      type: object
+      properties:
+        category:
+          $ref: "#/components/schemas/CivicCategory"
+        priority:
+          $ref: "#/components/schemas/Priority"
+        priorityReason:
+          type: string
+        summary:
+          type: string
+        affectedGroup:
+          type: string
+        recommendedDepartment:
+          type: string
+        recommendedAction:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        usedFallback:
+          type: boolean
+      required:
+        - category
+        - priority
+        - priorityReason
+        - summary
+        - affectedGroup
+        - recommendedDepartment
+        - recommendedAction
+        - confidence
+        - usedFallback
+    ComplaintUpdate:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/ComplaintStatus"
+      required: [status]
+    DemoDataInput:
+      type: object
+      properties:
+        count:
+          type: integer
+          minimum: 100
+          maximum: 500
+          default: 150
+    DemoDataResult:
+      type: object
+      properties:
+        createdCount:
+          type: integer
+        message:
+          type: string
+      required: [createdCount, message]
+    CategoryMetric:
+      type: object
+      properties:
+        category:
+          $ref: "#/components/schemas/CivicCategory"
+        count:
+          type: integer
+      required: [category, count]
+    PriorityMetric:
+      type: object
+      properties:
+        priority:
+          $ref: "#/components/schemas/Priority"
+        count:
+          type: integer
+      required: [priority, count]
+    DailyMetric:
+      type: object
+      properties:
+        day:
+          type: string
+        count:
+          type: integer
+      required: [day, count]
+    AreaMetric:
+      type: object
+      properties:
+        locationName:
+          type: string
+        city:
+          $ref: "#/components/schemas/City"
+        count:
+          type: integer
+      required: [locationName, city, count]
+    Analytics:
+      type: object
+      properties:
+        totalRequests:
+          type: integer
+        highPriority:
+          type: integer
+        mediumPriority:
+          type: integer
+        lowPriority:
+          type: integer
+        mostRequestedCategory:
+          anyOf:
+            - $ref: "#/components/schemas/CivicCategory"
+            - type: "null"
+        categoryBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryMetric"
+        priorityBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/PriorityMetric"
+        dailyRequests:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyMetric"
+        locationDemand:
+          type: array
+          items:
+            $ref: "#/components/schemas/AreaMetric"
+      required:
+        - totalRequests
+        - highPriority
+        - mediumPriority
+        - lowPriority
+        - mostRequestedCategory
+        - categoryBreakdown
+        - priorityBreakdown
+        - dailyRequests
+        - locationDemand
+    Hotspot:
+      type: object
+      properties:
+        id:
+          type: string
+        locationName:
+          type: string
+        city:
+          $ref: "#/components/schemas/City"
+        requests:
+          type: integer
+        topIssue:
+          $ref: "#/components/schemas/CivicCategory"
+        highPriority:
+          type: integer
+        severity:
+          type: string
+          enum: [High, Medium, Low]
+        latitude:
+          type: number
+        longitude:
+          type: number
+        radiusMeters:
+          type: integer
+      required:
+        - id
+        - locationName
+        - city
+        - requests
+        - topIssue
+        - highPriority
+        - severity
+        - latitude
+        - longitude
+        - radiusMeters
+    DevelopmentInsights:
+      type: object
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+        insights:
+          type: array
+          items:
+            type: string
+        suggestedPriorities:
+          type: array
+          items:
+            type: string
+        totalRecords:
+          type: integer
+        usedFallback:
+          type: boolean
+        disclaimer:
+          type: string
+      required:
+        - generatedAt
+        - insights
+        - suggestedPriorities
+        - totalRecords
+        - usedFallback
+        - disclaimer
