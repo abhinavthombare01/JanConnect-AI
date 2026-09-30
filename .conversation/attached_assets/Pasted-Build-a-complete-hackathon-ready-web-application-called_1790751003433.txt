@@ -1,0 +1,877 @@
+Build a complete hackathon-ready web application called **JanConnect AI**.
+
+### PROJECT PURPOSE
+
+JanConnect AI is a multilingual AI-powered civic-development intelligence platform for India.
+
+The platform collects citizen infrastructure requests and complaints through text input, analyses them using AI, classifies the issue, estimates its priority, associates it with a location, and presents aggregated demand patterns on an administration dashboard.
+
+The purpose is to help policymakers understand where citizens are requesting development and what types of infrastructure are most needed.
+
+This is a **hackathon prototype**, not a production government system.
+
+Do NOT build an unnecessarily complex enterprise system. Prioritize a polished, reliable, fast and visually impressive working MVP that can be demonstrated in 5–10 minutes.
+
+---
+
+# 1. CORE USER FLOW
+
+The main flow should be:
+
+Citizen enters complaint
+→ AI analyses complaint
+→ Category detected
+→ Priority detected
+→ Short summary generated
+→ Location selected
+→ Complaint stored
+→ Dashboard updates
+→ Map shows complaint location
+→ Multiple nearby complaints create a visible hotspot
+→ AI generates development recommendations
+
+---
+
+# 2. USER ROLES
+
+Create two simple modes:
+
+### A. Citizen
+
+Citizen can:
+
+* Submit a complaint/request
+* Select language
+* Enter location
+* View submitted request
+* See category and priority assigned by AI
+
+### B. Administrator
+
+Administrator can:
+
+* View analytics
+* View all complaints
+* View map
+* View hotspots
+* Filter by category
+* Filter by priority
+* View recent requests
+* Generate AI recommendations
+
+For the hackathon prototype, do NOT build complicated authentication.
+
+Use a simple:
+
+* "Citizen Portal"
+* "Admin Dashboard"
+
+navigation.
+
+---
+
+# 3. LANGUAGE SUPPORT
+
+Support:
+
+* English
+* Hindi
+* Marathi
+
+The complaint input should accept all three languages.
+
+Examples:
+
+English:
+"Road near my area has many potholes."
+
+Hindi:
+"हमारे इलाके में कई दिनों से पानी की समस्या है।"
+
+Marathi:
+"आमच्या भागात गेल्या काही दिवसांपासून पाणी येत नाही."
+
+The AI should understand all three languages and return normalized English labels for category and priority while preserving the original complaint text.
+
+Do NOT build a complicated translation engine from scratch.
+
+Use the selected LLM API for multilingual understanding.
+
+---
+
+# 4. CIVIC ISSUE CATEGORIES
+
+Use exactly these categories initially:
+
+1. Water
+2. Road
+3. Transport
+4. Healthcare
+5. Internet
+
+AI must classify each complaint into one of these categories.
+
+If confidence is low, classify as the closest category and mark confidence as low.
+
+Store:
+
+* category
+* confidence
+
+---
+
+# 5. PRIORITY CLASSIFICATION
+
+Classify every complaint as:
+
+* High
+* Medium
+* Low
+
+Examples:
+
+"Children and elderly people have no access to drinking water"
+→ High
+
+"Road has a few potholes"
+→ Medium
+
+"Would be useful to add another bus stop"
+→ Low or Medium
+
+The AI should consider:
+
+* urgency
+* number of people potentially affected
+* safety
+* essential services
+* severity
+
+Store:
+
+* priority
+* priority_reason
+
+---
+
+# 6. AI ANALYSIS
+
+Create an AI analysis function.
+
+Input:
+
+* complaint text
+* language
+* location
+
+Return strict JSON:
+
+{
+"category": "Water",
+"priority": "High",
+"summary": "Residents are reporting unreliable water supply.",
+"affected_group": "Local residents",
+"recommended_department": "Water Supply Department",
+"recommended_action": "Inspect local water supply and pipeline availability.",
+"confidence": 0.92
+}
+
+Do NOT return extra text outside JSON.
+
+Handle AI/API failures gracefully.
+
+If the AI API is unavailable, provide a simple fallback classification using keyword-based logic so the application still works.
+
+Fallback examples:
+
+water, पानी, पाणी, नळ, water supply
+→ Water
+
+road, pothole, रस्ता, सड़क, खड्डे
+→ Road
+
+bus, transport, प्रवास, बस, परिवहन
+→ Transport
+
+hospital, doctor, आरोग्य, स्वास्थ्य, दवाखाना
+→ Healthcare
+
+internet, network, इंटरनेट, नेटवर्क
+→ Internet
+
+---
+
+# 7. CITIZEN COMPLAINT FORM
+
+Create a polished page called:
+
+### "Raise a Development Request"
+
+Fields:
+
+* Language selector
+* Complaint / request text
+* Location
+* Optional contact name
+* Optional phone number
+* Submit button
+
+For location, allow:
+
+1. Search/select from predefined demo locations
+2. Optional map selection
+
+Use the following demo locations:
+
+* Hadapsar, Pune
+* Kothrud, Pune
+* Pimpri, Pune
+* Nashik Road, Nashik
+* Central Nashik
+* Nagpur Central
+* Mumbai Suburbs
+* Thane
+
+For simplicity, use predefined latitude/longitude coordinates.
+
+After submitting:
+
+* Show loading state
+* Run AI analysis
+* Save record
+* Show result card
+
+Example result:
+
+"Your request has been received"
+
+Category: Water
+Priority: High
+Summary: Residents report irregular water supply.
+
+---
+
+# 8. DATABASE
+
+Use SQLite.
+
+Create a complaints table with fields approximately:
+
+id
+complaint_text
+language
+category
+priority
+priority_reason
+summary
+affected_group
+recommended_department
+recommended_action
+confidence
+location_name
+latitude
+longitude
+status
+created_at
+
+Status values:
+
+* New
+* Under Review
+* Action Suggested
+* Resolved
+
+Also create a simple admin/demo configuration if required.
+
+---
+
+# 9. ADMIN DASHBOARD
+
+Create a modern dashboard.
+
+Header:
+
+JANCONNECT AI
+"Civic Demand Intelligence Platform"
+
+Add KPI cards:
+
+* Total Requests
+* High Priority
+* Medium Priority
+* Low Priority
+* Most Requested Category
+
+Example:
+
+Total Requests
+248
+
+High Priority
+67
+
+Medium Priority
+109
+
+Low Priority
+72
+
+Most Requested
+Water
+
+---
+
+# 10. ANALYTICS
+
+Create charts using Recharts.
+
+Charts:
+
+### A. Requests by category
+
+Bar chart:
+
+Water
+Road
+Transport
+Healthcare
+Internet
+
+### B. Priority distribution
+
+Pie / donut chart:
+
+High
+Medium
+Low
+
+### C. Requests over time
+
+Line chart showing complaint volume.
+
+### D. Location demand
+
+Bar chart showing requests by area.
+
+---
+
+# 11. HOTSPOT MAP
+
+Use:
+
+* Leaflet
+* OpenStreetMap
+
+Create an interactive map.
+
+Every complaint should appear as a marker.
+
+Different marker appearance should represent priority:
+
+High → red
+Medium → orange
+Low → green
+
+IMPORTANT:
+
+A **hotspot** means an area where many requests are concentrated geographically.
+
+Do NOT implement advanced geospatial machine learning.
+
+For the hackathon prototype, calculate hotspots using simple geographic clustering.
+
+For example:
+
+If several complaints occur within a defined radius of each other:
+
+* count them
+* calculate hotspot severity
+
+Display a circle around the area.
+
+Hotspot popup:
+
+"Hadapsar Hotspot"
+
+Requests: 37
+Top issue: Water
+High priority: 15
+
+This must update dynamically from database data.
+
+---
+
+# 12. SYNTHETIC DEMO DATA
+
+Create a button in the Admin Dashboard:
+
+### "Generate Demo Data"
+
+Clicking it should generate around 100–500 synthetic citizen requests.
+
+Do NOT require the developer to manually type hundreds of records.
+
+Generate realistic sample complaints across:
+
+* Pune
+* Nashik
+* Nagpur
+* Mumbai
+* Thane
+
+Use realistic multilingual complaint text.
+
+Examples:
+
+English:
+"Water supply has been irregular in our locality."
+
+Marathi:
+"आमच्या भागातील रस्ता खड्ड्यांनी भरला आहे."
+
+Hindi:
+"हमारे इलाके में बस की सुविधा बहुत कम है।"
+
+The generated data should be intentionally distributed so that some locations have more requests than others.
+
+For example:
+Hadapsar → many water complaints
+Kothrud → transport complaints
+Pimpri → road complaints
+Nashik Road → healthcare complaints
+
+This allows the dashboard and hotspot map to look meaningful during the demo.
+
+Label this data clearly as:
+
+"Demo / Synthetic Data"
+
+Do not present it as real government data.
+
+---
+
+# 13. AI RECOMMENDATIONS
+
+Create a dashboard section:
+
+### "AI Development Insights"
+
+Analyse aggregated complaints.
+
+Example output:
+
+"Water-related requests represent the largest share of citizen demand in Hadapsar."
+
+"Multiple high-priority road complaints are concentrated in Pimpri."
+
+"Healthcare requests in Nashik Road indicate a potential need for improved local access."
+
+Then provide:
+
+### Suggested development priorities
+
+1. Review water infrastructure in high-demand zones
+2. Assess road maintenance requirements in concentrated complaint clusters
+3. Review public transport coverage where transport complaints are concentrated
+4. Examine healthcare accessibility in high-demand regions
+
+IMPORTANT:
+
+These are AI-generated prototype recommendations, not actual government decisions.
+
+---
+
+# 14. FILTERS
+
+Admin dashboard should allow:
+
+Category:
+
+* All
+* Water
+* Road
+* Transport
+* Healthcare
+* Internet
+
+Priority:
+
+* All
+* High
+* Medium
+* Low
+
+Location:
+
+* All
+* Pune
+* Nashik
+* Nagpur
+* Mumbai
+* Thane
+
+Status:
+
+* All
+* New
+* Under Review
+* Action Suggested
+* Resolved
+
+Filters should update:
+
+* complaint table
+* charts where practical
+* map markers
+* KPI counts
+
+---
+
+# 15. COMPLAINT TABLE
+
+Create a professional table with:
+
+ID
+Date
+Location
+Category
+Priority
+Summary
+Status
+
+Example:
+
+#1042
+Hadapsar
+Water
+High
+Irregular water supply
+New
+
+Clicking a row should open a detail panel/modal showing:
+
+* Full complaint
+* Language
+* Category
+* Priority
+* AI summary
+* Recommended department
+* Recommended action
+* Location
+* Status
+
+Allow status update.
+
+---
+
+# 16. UI / DESIGN
+
+The UI must look like a real civic-tech startup product.
+
+Use:
+
+* clean white/light background
+* modern cards
+* subtle shadows
+* rounded corners
+* professional typography
+* responsive layout
+* desktop-first admin dashboard
+* mobile-friendly citizen interface
+
+Do NOT make it look like a generic student CRUD project.
+
+Brand:
+
+JANCONNECT AI
+
+Subtitle:
+"From Citizen Voices to Smarter Infrastructure Decisions"
+
+Use a subtle Indian civic/public infrastructure visual identity.
+
+Do not use copyrighted government logos.
+
+---
+
+# 17. LANDING PAGE
+
+Create a landing page with:
+
+Hero:
+
+"Turn Citizen Voices into Actionable Development Intelligence"
+
+Supporting text:
+
+"JanConnect AI aggregates multilingual citizen requests and transforms fragmented feedback into geographic demand insights for better infrastructure planning."
+
+Buttons:
+
+"Raise a Request"
+"Open Admin Dashboard"
+
+Add three feature cards:
+
+1. Multilingual Citizen Voice
+2. AI Demand Intelligence
+3. Infrastructure Hotspot Mapping
+
+Add a simple architecture illustration/card:
+
+Citizen Inputs
+↓
+AI Analysis
+↓
+Demand Hotspots
+↓
+Development Insights
+
+---
+
+# 18. ARCHITECTURE PAGE/SECTION
+
+Create a section explaining:
+
+Citizen Input
+→ AI Analysis
+→ Classification
+→ Geographic Aggregation
+→ Demand Hotspots
+→ AI Recommendations
+→ Policy Review
+
+Also show:
+
+Text
+Voice (future-ready)
+Messaging Apps (future-ready)
+
+IMPORTANT:
+
+For this 12-hour prototype, only text input is required.
+
+Voice and messaging apps should be presented as future integrations, not fake working features.
+
+---
+
+# 19. FUTURE-READY FEATURES
+
+Show these as "Roadmap" cards:
+
+* WhatsApp integration
+* Voice-based complaints
+* More Indian languages
+* National demographic datasets
+* Infrastructure index integration
+* Public investment plan integration
+* Advanced geospatial analytics
+* Federated / privacy-preserving analytics
+* State and national interoperability
+
+Do NOT build these now.
+
+---
+
+# 20. SECURITY / PRIVACY
+
+Add a basic note:
+
+"Prototype data is synthetic/demo data. Production deployment would require consent, privacy controls, authentication, access control and compliance with applicable Indian data protection requirements."
+
+Do not claim government certification or official integration.
+
+---
+
+# 21. BACKEND API
+
+Create clean FastAPI routes such as:
+
+GET /api/complaints
+POST /api/complaints
+GET /api/complaints/{id}
+PUT /api/complaints/{id}
+GET /api/analytics
+GET /api/hotspots
+POST /api/generate-demo-data
+POST /api/analyze-complaint
+
+Use CORS properly.
+
+Return clean JSON responses.
+
+---
+
+# 22. FRONTEND PAGES
+
+Create these routes:
+
+/
+/citizen
+/submit
+/dashboard
+/complaints
+/map
+/about
+
+Do not require login for prototype navigation.
+
+Add a navigation bar.
+
+---
+
+# 23. ERROR HANDLING
+
+The application must not crash if:
+
+* AI API is unavailable
+* Database is empty
+* Map data is unavailable
+* Invalid complaint is submitted
+
+Show friendly error messages.
+
+Use fallback AI keyword classification if the AI API fails.
+
+---
+
+# 24. EMPTY STATE
+
+If no complaints exist:
+
+Dashboard should show:
+
+"No requests yet"
+
+And a button:
+
+"Generate Demo Data"
+
+---
+
+# 25. DEMO MODE
+
+Make the application easy to demonstrate.
+
+When the project starts:
+
+1. Open landing page
+2. Click "Raise a Request"
+3. Submit:
+   "आमच्या भागात गेल्या काही दिवसांपासून पाणी येत नाही."
+4. AI classifies it as:
+   Water
+   High
+5. Open Admin Dashboard
+6. See updated count
+7. Open Map
+8. Show location marker
+9. Click "Generate Demo Data"
+10. Show hotspot
+11. Show charts
+12. Show AI Development Insights
+
+This exact flow should work.
+
+---
+
+# 26. IMPORTANT DEVELOPMENT RULES
+
+Do NOT over-engineer.
+
+Do NOT add:
+
+* microservices
+* Kubernetes
+* Redis
+* Kafka
+* complex authentication
+* advanced ML training pipelines
+* real WhatsApp integration
+* real government APIs
+* satellite systems
+* complex GIS
+* federated learning implementation
+
+The goal is a functional hackathon MVP.
+
+Prioritize:
+
+1. Working application
+2. Beautiful UI
+3. AI analysis
+4. Map
+5. Dashboard
+6. Synthetic data
+7. Demo reliability
+
+---
+
+# 27. README
+
+Create a professional README containing:
+
+Project Name
+Problem
+Solution
+Key Features
+Architecture
+Tech Stack
+How AI is Used
+How Hotspots Work
+How Demo Data Works
+How to Run Locally
+Environment Variables
+Future Scope
+Team Contribution section
+
+Also include a simple architecture diagram using Mermaid if supported.
+
+---
+
+# 28. ENVIRONMENT VARIABLES
+
+Use:
+
+OPENAI_API_KEY=
+
+OR
+
+GEMINI_API_KEY=
+
+Do not hardcode API keys.
+
+Provide .env.example.
+
+---
+
+# 29. FINAL QUALITY CHECK
+
+Before finishing:
+
+* Ensure frontend builds without errors
+* Ensure backend starts without errors
+* Ensure database initializes automatically
+* Ensure complaint submission works
+* Ensure AI analysis works
+* Ensure fallback classification works
+* Ensure demo data generation works
+* Ensure charts work
+* Ensure map works
+* Ensure hotspots work
+* Ensure filters work
+* Ensure status update works
+* Ensure responsive UI
+* Ensure no fake claims of real government integration
+* Ensure no broken navigation
+* Ensure clean project structure
+
+At the end, provide:
+
+1. Exact command to run backend
+2. Exact command to run frontend
+3. Required environment variables
+4. Demo account or navigation instructions if needed
+5. 5-minute hackathon demo script
+
+Build the application completely and make reasonable implementation decisions without asking unnecessary questions.

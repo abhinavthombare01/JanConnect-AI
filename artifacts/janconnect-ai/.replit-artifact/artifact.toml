@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "JanConnect AI"
+description = "A multilingual civic-development intelligence platform for India. Citizens submit requests in English, Hindi, or Marathi; administrators explore categorized demand, priority, hotspots, and prototype development insights."
+version = "1.0.0"
+id = "artifacts/janconnect-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19759
+
+[services.development]
+run = "pnpm --filter @workspace/janconnect-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/janconnect-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/janconnect-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19759"
+BASE_PATH = "/"
