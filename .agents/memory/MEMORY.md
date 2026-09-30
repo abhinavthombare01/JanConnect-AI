@@ -1,0 +1,1 @@
+- [Artifact dependency installs](monorepo-package-installs.md) — target package installs in pnpm workspaces; the generic package callback may invoke pnpm at the root.
